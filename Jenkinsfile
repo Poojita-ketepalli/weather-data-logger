@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        MYSQL_ROOT_PASSWORD = credentials('mysql-root-password') // Use Jenkins credentials
+        MYSQL_ROOT_PASSWORD = credentials('mysql-root-password') // Ensure this credential exists in Jenkins
         MYSQL_DATABASE = 'weatherdb'
     }
 
@@ -18,11 +18,11 @@ pipeline {
                 script {
                     echo '🚀 Starting MySQL...'
 
-                    // Ensure Docker is accessible and MySQL container is not already running
+                    // Ensure MySQL container is started
                     sh '''
                     if ! docker ps | grep -q mysql; then
                         docker run --name mysql -e MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} -e MYSQL_DATABASE=${MYSQL_DATABASE} -p 3306:3306 -d mysql:8
-                        sleep 10  # Wait for MySQL to initialize
+                        sleep 10
                     fi
                     '''
                 }
@@ -79,8 +79,12 @@ pipeline {
         always {
             script {
                 echo '🧹 Cleaning up...'
-                sh 'docker stop mysql || true'
-                sh 'docker rm mysql || true'
+                try {
+                    sh 'docker stop mysql || true'
+                    sh 'docker rm mysql || true'
+                } catch (Exception e) {
+                    echo '⚠️ Cleanup failed, but continuing...'
+                }
             }
         }
         success {
