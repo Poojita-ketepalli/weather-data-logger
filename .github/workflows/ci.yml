@@ -15,10 +15,10 @@ jobs:
       mysql:
         image: mysql:8
         env:
-          MYSQL_ROOT_PASSWORD: root
+          MYSQL_ROOT_PASSWORD: Puji2002@
           MYSQL_DATABASE: weatherdb
           MYSQL_USER: root
-          MYSQL_PASSWORD: Puji2002@
+          
         ports:
           - 3306:3306
         options: >-
