@@ -4,13 +4,12 @@ pipeline {
     environment {
         MYSQL_ROOT_PASSWORD = 'Puji2002@'
         MYSQL_DATABASE = 'weatherdb'
-        MYSQL_USER = 'root'
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'main', credentialsId: 'github-credentials', url: 'https://github.com/Poojita-ketepalli/weather-data-logger.git'
+                git branch: 'main', url: 'https://github.com/your-username/weather-data-logger.git'
             }
         }
 
