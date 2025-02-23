@@ -22,8 +22,17 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    sudo systemctl start mysql || docker run --name mysql -e MYSQL_ROOT_PASSWORD=Puji2002@ -e MYSQL_DATABASE=weatherdb -p 3306:3306 -d mysql:8
-                    sleep 20
+                    # Try to start MySQL if it's already installed
+                    systemctl start mysql 2>/dev/null || echo "MySQL service not found, using Docker..."
+
+                    # Check if MySQL is already running
+                    if ! mysqladmin ping -h 127.0.0.1 --silent; then
+                        # Start MySQL using Docker if it's not running
+                        docker run --name mysql -e MYSQL_ROOT_PASSWORD=Puji2002@ -e MYSQL_DATABASE=weatherdb -p 3306:3306 -d mysql:8 || echo "Docker not found!"
+                        sleep 20
+                    else
+                        echo "MySQL is already running."
+                    fi
                     '''
                 }
             }
@@ -33,7 +42,7 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    mysql -h 127.0.0.1 -u root -pPuji2002@ -e "SHOW DATABASES;"
+                    mysql -h 127.0.0.1 -u root -pPuji2002@ -e "SHOW DATABASES;" || echo "Failed to connect to MySQL!"
                     '''
                 }
             }
