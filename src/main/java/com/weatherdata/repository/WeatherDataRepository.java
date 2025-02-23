@@ -18,4 +18,10 @@ public interface WeatherDataRepository extends JpaRepository<WeatherData, Long> 
 
     // Find the latest weather data for a city
     WeatherData findTopByCityOrderByRecordedAtDesc(String city);
+
+    // Fetch all weather data history
+    List<WeatherData> findAll();
+
+    // Delete a specific record by ID
+    void deleteById(Long id);
 }

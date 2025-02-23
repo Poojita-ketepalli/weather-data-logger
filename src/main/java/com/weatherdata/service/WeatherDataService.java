@@ -8,6 +8,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class WeatherDataService {
@@ -58,5 +59,20 @@ public class WeatherDataService {
     // ⏳ Get latest weather entry for a city
     public WeatherData getLatestWeather(String city) {
         return weatherDataRepository.findTopByCityOrderByRecordedAtDesc(city);
+    }
+
+    // Fetch all history
+    public List<WeatherData> getAllWeatherHistory() {
+        return weatherDataRepository.findAll();
+    }
+
+    // Delete a weather record by ID
+    public boolean deleteWeatherRecord(Long id) {
+        Optional<WeatherData> record = weatherDataRepository.findById(id);
+        if (record.isPresent()) {
+            weatherDataRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
 }

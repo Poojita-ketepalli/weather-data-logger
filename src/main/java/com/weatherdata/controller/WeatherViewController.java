@@ -2,11 +2,11 @@ package com.weatherdata.controller;
 
 import com.weatherdata.entity.WeatherData;
 import com.weatherdata.service.WeatherDataService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -43,4 +43,25 @@ public class WeatherViewController {
 
         return "weather"; // ✅ Ensure "weather.html" exists in /templates
     }
+
+    // Fetch all weather history
+    @GetMapping("/history")
+    public String getAllWeatherHistory(Model model) {
+        List<WeatherData> history = weatherDataService.getAllWeatherHistory();
+        model.addAttribute("history", history);
+        return "weather-history"; // Assuming you have a Thymeleaf template named weather-history.html
+    }
+
+    // Delete a specific weather entry
+    @DeleteMapping("/delete/{id}")
+    @ResponseBody
+    public ResponseEntity<String> deleteWeatherData(@PathVariable Long id) {
+        try {
+            weatherDataService.deleteWeatherRecord(id);
+            return ResponseEntity.ok("Success");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed");
+        }
+    }
+
 }
