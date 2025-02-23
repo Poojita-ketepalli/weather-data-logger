@@ -13,19 +13,6 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
-            steps {
-                script {
-                    sh '''
-                    echo "Updating package lists..."
-                    sudo apt-get update
-                    echo "Installing Git, Maven, and MySQL Client..."
-                    sudo apt-get install -y git maven mysql-client
-                    '''
-                }
-            }
-        }
-
 
         stage('Start MySQL') {
             steps {
