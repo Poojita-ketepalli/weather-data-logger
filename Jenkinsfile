@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        MYSQL_ROOT_PASSWORD = Puji2002@  // Use Jenkins credentials for security
+        MYSQL_ROOT_PASSWORD = credentials('MYSQL_ROOT_PASSWORD')  // Use Jenkins credentials for security
         MYSQL_DATABASE = 'weatherdb'
         MYSQL_USER = 'root'
     }
