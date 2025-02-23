@@ -10,7 +10,7 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git credentialsId: 'github-token',
+                git credentialsId: 'github-credentials',
                     url: 'https://github.com/Poojita-ketepalli/weather-data-logger.git',
                     branch: 'main'
             }
