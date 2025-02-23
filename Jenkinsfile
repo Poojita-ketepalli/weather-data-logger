@@ -18,13 +18,14 @@ pipeline {
                 script {
                     sh '''
                     echo "Updating package lists..."
-                    apt-get update
+                    sudo apt-get update
                     echo "Installing Git, Maven, and MySQL Client..."
-                    apt-get install -y git maven mysql-client
+                    sudo apt-get install -y git maven mysql-client
                     '''
                 }
             }
         }
+
 
         stage('Start MySQL') {
             steps {
