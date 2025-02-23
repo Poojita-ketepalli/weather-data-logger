@@ -2,24 +2,28 @@ pipeline {
     agent any
 
     environment {
-        MYSQL_ROOT_PASSWORD = 'Puji2002@'
+        MYSQL_ROOT_PASSWORD = Puji2002@  // Use Jenkins credentials for security
         MYSQL_DATABASE = 'weatherdb'
         MYSQL_USER = 'root'
     }
 
-    stage('Checkout Code') {
-        steps {
-            git credentialsId: 'github-credentials', url: 'https://github.com/Poojita-ketepalli/weather-data-logger.git', branch: 'main'
+    stages {
+        stage('Checkout Code') {
+            steps {
+                git credentialsId: 'github-credentials', url: 'git@github.com:Poojita-ketepalli/weather-data-logger.git', branch: 'main'
+            }
         }
-    }
-
 
         stage('Start MySQL') {
             steps {
                 script {
                     sh '''
-                    sudo systemctl start mysql || docker run --name mysql -e MYSQL_ROOT_PASSWORD=Puji2002@ -e MYSQL_DATABASE=weatherdb -p 3306:3306 -d mysql:8
-                    sleep 20
+                    if systemctl is-active --quiet mysql; then
+                        echo "MySQL is already running"
+                    else
+                        sudo systemctl start mysql || docker run --name mysql -e MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} -e MYSQL_DATABASE=${MYSQL_DATABASE} -p 3306:3306 -d mysql:8
+                        sleep 20
+                    fi
                     '''
                 }
             }
@@ -29,7 +33,7 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    mysql -h 127.0.0.1 -u root -pPuji2002@ -e "SHOW DATABASES;"
+                    mysql --host=127.0.0.1 --user=root --password=${MYSQL_ROOT_PASSWORD} -e "SHOW DATABASES;"
                     '''
                 }
             }
