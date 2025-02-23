@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Weather Data</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background: linear-gradient(to right, #56ccf2, #2f80ed);
+            color: white;
+        }
+        .container {
+            margin-top: 50px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        h1, h2 {
+            margin-bottom: 20px;
+        }
+        .weather-card {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+        .btn-custom {
+            background: #ff8c00;
+            border: none;
+            color: white;
+        }
+        .btn-custom:hover {
+            background: #e07b00;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Weather for <span th:text="${city}"></span></h1>
+
+    <div class="weather-card">
+        <h2>🌡️ Current Weather</h2>
+        <p><strong>Temperature:</strong> <span th:text="${latestWeather.temperature}"></span>°C</p>
+        <p><strong>Wind Speed:</strong> <span th:text="${latestWeather.windSpeed}"></span> m/s</p>
+        <p><strong>Humidity:</strong> <span th:text="${latestWeather.humidity}"></span>%</p>
+        <p><strong>Pressure:</strong> <span th:text="${latestWeather.pressure}"></span> hPa</p>
+        <p><strong>Country:</strong> <span th:text="${latestWeather.country}"></span></p>
+        <p><strong>Description:</strong> <span th:text="${latestWeather.weatherDesc}"></span></p>
+    </div>
+
+    <h2>📜 Weather History</h2>
+    <ul class="list-group">
+        <li class="list-group-item text-dark" th:each="data : ${history}">
+            <strong th:text="${data.recordedAt}"></strong> - <span th:text="${data.temperature}"></span>°C
+        </li>
+    </ul>
+
+    <a href="/" class="btn btn-custom mt-3">🔙 Back to Search</a>
+</div>
+</body>
+</html>
