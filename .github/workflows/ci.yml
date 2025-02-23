@@ -1,0 +1,35 @@
+name: Weather Data Logger
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: 23
+          distribution: 'temurin'
+
+      - name: Build with maven
+        run: mvn clean package
+
+      - name: Run tests
+        run: mvn test
+
+      - name: upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+            name: weather-data-logger
+            path: target/*.jar
