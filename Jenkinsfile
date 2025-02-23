@@ -4,28 +4,22 @@ pipeline {
     environment {
         MYSQL_ROOT_PASSWORD = 'Puji2002@'
         MYSQL_DATABASE = 'weatherdb'
+        MYSQL_USER = 'root'
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                git credentialsId: 'github-credentials', url: 'https://github.com/Poojita-ketepalli/weather-data-logger.git', branch: 'main'
+                git branch: 'main', url: 'https://github.com/your-username/weather-data-logger.git'
             }
         }
-
 
         stage('Start MySQL') {
             steps {
                 script {
                     sh '''
-                    echo "Checking if MySQL is running..."
-                    if ! mysqladmin ping -h 127.0.0.1 --silent; then
-                        echo "MySQL not found, starting a new MySQL container..."
-                        docker run --name mysql -e MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} -e MYSQL_DATABASE=${MYSQL_DATABASE} -p 3306:3306 -d mysql:8
-                        sleep 20
-                    else
-                        echo "MySQL is already running!"
-                    fi
+                    sudo systemctl start mysql || docker run --name mysql -e MYSQL_ROOT_PASSWORD=Puji2002@ -e MYSQL_DATABASE=weatherdb -p 3306:3306 -d mysql:8
+                    sleep 20
                     '''
                 }
             }
@@ -35,8 +29,7 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    echo "Testing MySQL connection..."
-                    mysql -h 127.0.0.1 -u root -p${MYSQL_ROOT_PASSWORD} -e "SHOW DATABASES;"
+                    mysql -h 127.0.0.1 -u root -pPuji2002@ -e "SHOW DATABASES;"
                     '''
                 }
             }
@@ -44,14 +37,16 @@ pipeline {
 
         stage('Setup JDK 17') {
             steps {
-                sh 'java -version'
+                script {
+                    sh 'java -version'
+                }
             }
         }
 
         stage('Build with Maven') {
             steps {
                 script {
-                    sh 'mvn -B clean package -DskipTests'  // Skipping tests for now
+                    sh 'mvn clean package'
                 }
             }
         }
@@ -59,11 +54,7 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    try {
-                        sh 'mvn test'
-                    } catch (Exception e) {
-                        echo "Tests failed, but proceeding with the pipeline."
-                    }
+                    sh 'mvn test'
                 }
             }
         }
@@ -72,15 +63,6 @@ pipeline {
             steps {
                 archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
             }
-        }
-    }
-
-    post {
-        success {
-            echo 'Pipeline executed successfully!'
-        }
-        failure {
-            echo 'Pipeline failed! Check logs for details.'
         }
     }
 }
