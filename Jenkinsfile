@@ -7,12 +7,12 @@ pipeline {
         MYSQL_USER = 'root'
     }
 
-    stages {
-        stage('Checkout Code') {
-            steps {
-                git branch: 'main', url: 'https://github.com/your-username/weather-data-logger.git'
-            }
+    stage('Checkout Code') {
+        steps {
+            git credentialsId: 'github-credentials', url: 'https://github.com/Poojita-ketepalli/weather-data-logger.git', branch: 'main'
         }
+    }
+
 
         stage('Start MySQL') {
             steps {
