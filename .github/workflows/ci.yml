@@ -7,11 +7,26 @@ on:
   pull_request:
     branches:
       - main
-
+  workflow_dispatch:  # Allow manual trigger from GitHub Actions UI
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: Puji2002@
+          MYSQL_DATABASE: weatherdb
+
+        ports:
+          - 3307:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u$root -p$Puji2002@"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
 
     steps:
       - name: Checkout code
@@ -23,10 +38,21 @@ jobs:
           java-version: 17
           distribution: 'temurin'
 
+      - name: Wait for MySQL to be ready
+        run: sleep 20  # Ensure MySQL starts before running tests
+
       - name: Build with Maven
+        env:
+          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/weatherdb
+          SPRING_DATASOURCE_USERNAME: root
+          SPRING_DATASOURCE_PASSWORD: Puji2002@
         run: mvn clean package
 
       - name: Run tests
+        env:
+          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/weatherdb
+          SPRING_DATASOURCE_USERNAME: root
+          SPRING_DATASOURCE_PASSWORD: root
         run: mvn test
 
       - name: Upload Artifact
@@ -70,7 +96,7 @@ jobs:
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}  # ⬅️ Use SSH Key instead of password
+          key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             docker stop weather-app || true
             docker rm weather-app || true
