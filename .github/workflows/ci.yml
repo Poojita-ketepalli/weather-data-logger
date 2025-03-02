@@ -1,4 +1,4 @@
-name: Weather Data Logger
+name: Weather Data Logger CI/CD
 
 on:
   push:
@@ -7,22 +7,11 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
-    services:
-      mysql:
-        image: mysql:8
-        env:
-          MYSQL_ROOT_PASSWORD: Puji2002@
-          MYSQL_DATABASE: weatherdb
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping --silent"
-          --health-start-period=30s
-          --health-retries=5
 
     steps:
       - name: Checkout code
@@ -33,13 +22,6 @@ jobs:
         with:
           java-version: 17
           distribution: 'temurin'
-
-      - name: Wait for MySQL
-        run: sleep 20s
-
-      - name: Test MySQL Connection
-        run: |
-          mysql -h 127.0.0.1 -u root -pPuji2002@ -e "SHOW DATABASES;"
 
       - name: Build with Maven
         run: mvn clean package
@@ -52,3 +34,45 @@ jobs:
         with:
           name: weather-data-logger
           path: target/*.jar
+
+  docker-build-push:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build Docker Image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/weather-app:latest .
+
+      - name: Push to Docker Hub
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/weather-app:latest
+
+  deploy:
+    needs: docker-build-push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}  # ⬅️ Use SSH Key instead of password
+          script: |
+            docker stop weather-app || true
+            docker rm weather-app || true
+            docker pull ${{ secrets.DOCKER_USERNAME }}/weather-app:latest
+            docker run -d -p 6161:6161 --name weather-app --network=weather-network ${{ secrets.DOCKER_USERNAME }}/weather-app:latest
