@@ -52,7 +52,7 @@ jobs:
         env:
           SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/weatherdb
           SPRING_DATASOURCE_USERNAME: root
-          SPRING_DATASOURCE_PASSWORD: root
+          SPRING_DATASOURCE_PASSWORD: Puji2002@
         run: mvn test
 
       - name: Upload Artifact
