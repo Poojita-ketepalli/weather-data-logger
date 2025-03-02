@@ -7,7 +7,7 @@ on:
   pull_request:
     branches:
       - main
-  workflow_dispatch:  # Allow manual trigger from GitHub Actions UI
+  workflow_dispatch:
 
 jobs:
   build-and-test:
@@ -17,16 +17,17 @@ jobs:
       mysql:
         image: mysql:8.0
         env:
-          MYSQL_ROOT_PASSWORD: Puji2002@
-          MYSQL_DATABASE: weatherdb
-
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
+          MYSQL_USER: ${{ secrets.MYSQL_USER }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
         ports:
-          - 3307:3306
+          - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -u$root -p$Puji2002@"
-          --health-interval=10s
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u${{ secrets.MYSQL_USER }} -p${{ secrets.MYSQL_PASSWORD }}"
+          --health-interval=5s
           --health-timeout=5s
-          --health-retries=3
+          --health-retries=5
 
     steps:
       - name: Checkout code
@@ -39,20 +40,29 @@ jobs:
           distribution: 'temurin'
 
       - name: Wait for MySQL to be ready
-        run: sleep 20  # Ensure MySQL starts before running tests
+        run: |
+          echo "Waiting for MySQL to be ready..."
+          for i in {1..30}; do
+            if mysqladmin ping -h127.0.0.1 -u${{ secrets.MYSQL_USER }} -p${{ secrets.MYSQL_PASSWORD }} --silent; then
+              echo "MySQL is up and running!"
+              break
+            fi
+            echo "Waiting for MySQL... ($i/30)"
+            sleep 2
+          done
 
       - name: Build with Maven
         env:
-          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/weatherdb
-          SPRING_DATASOURCE_USERNAME: root
-          SPRING_DATASOURCE_PASSWORD: Puji2002@
+          SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/${{ secrets.MYSQL_DATABASE }}
+          SPRING_DATASOURCE_USERNAME: ${{ secrets.MYSQL_USER }}
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
         run: mvn clean package
 
       - name: Run tests
         env:
-          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/weatherdb
-          SPRING_DATASOURCE_USERNAME: root
-          SPRING_DATASOURCE_PASSWORD: Puji2002@
+          SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/${{ secrets.MYSQL_DATABASE }}
+          SPRING_DATASOURCE_USERNAME: ${{ secrets.MYSQL_USER }}
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
         run: mvn test
 
       - name: Upload Artifact
