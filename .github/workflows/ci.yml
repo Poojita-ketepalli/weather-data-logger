@@ -79,7 +79,7 @@ jobs:
       - name: Restore Built Artifact
         uses: actions/download-artifact@v4
         with:
-          name: weather-data-logger  # Must match the artifact name from the `build-and-test` job
+          name: weatherdata-0.0.1-SNAPSHOT.jar  # Must match the artifact name from the `build-and-test` job
           path: target  # 🔹 Ensures the JAR file is placed in `target/`
 
       - name: Debug List target directory
