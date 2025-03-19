@@ -116,6 +116,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Setup SSH Key
+        run: |
+          echo "${{ secrets.SERVER_SSH_KEY }}" > private_key.pem
+          chmod 600 private_key.pem
+
       - name: Deploy to Server
         uses: appleboy/ssh-action@master
         with:
@@ -134,3 +139,4 @@ jobs:
             docker run -d -p 6161:6161 --name weather-app --network=weather-network ${{ secrets.DOCKER_USERNAME }}/weather-app:latest
 
             echo "✅ Deployment successful!"
+  
