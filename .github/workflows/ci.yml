@@ -82,8 +82,7 @@ jobs:
           name: weather-data-logger  # Must match the artifact name from the `build-and-test` job
           path: target  # 🔹 Ensures the JAR file is placed in `target/`
 
-      - name:
-          Debug: List target directory
+      - name: Debug List target directory
         run: ls -l target  # 🔹 Verify the JAR file is present before building Docker image
 
       - name: Set up Docker Buildx
