@@ -23,6 +23,11 @@ jobs:
           MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
         ports:
           - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -p${{ secrets.MYSQL_PASSWORD }} --silent"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
 
     steps:
       - name: Checkout code
@@ -34,31 +39,24 @@ jobs:
           java-version: 17
           distribution: 'temurin'
 
-      - name: Check MySQL Logs
-        run: docker logs $(docker ps -q --filter ancestor=mysql:8.0) || echo "No MySQL logs found."
-
       - name: Wait for MySQL to be ready
         run: |
           echo "Waiting for MySQL to be ready..."
-          for i in {1..90}; do
-            if mysqladmin ping -hmysql -uroot -p"${{ secrets.MYSQL_PASSWORD }}" --silent; then
+          for i in {1..60}; do
+            if mysqladmin ping -h mysql -uroot -p"${{ secrets.MYSQL_PASSWORD }}" --silent; then
               echo "MySQL is up and running!"
               break
             fi
-            echo "Waiting for MySQL... ($i/90)"
+            echo "Waiting for MySQL... ($i/60)"
             sleep 2
           done
-          mysql -hmysql -uroot -p"${{ secrets.MYSQL_PASSWORD }}" -e "SHOW DATABASES;" || echo "Database connection failed!"
-
-      - name: Debug MySQL Variables
-        run: |
-          echo "Database Name: ${{ secrets.MYSQL_DATABASE }}"
-          echo "Database User: ${{ secrets.MYSQL_USER }}"
-      
+          mysql -h mysql -uroot -p"${{ secrets.MYSQL_PASSWORD }}" --protocol=tcp -e "SHOW DATABASES;"
 
       - name: Build with Maven
         env:
-          SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/${{ secrets.MYSQL_DATABASE }}?allowPublicKeyRetrieval=true&useSSL=false
+          SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${{ secrets.MYSQL_DATABASE }}?allowPublicKeyRetrieval=true&useSSL=false
+          SPRING_DATASOURCE_USERNAME: root
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
         run: mvn clean package -DskipTests
 
       - name: Run tests
@@ -66,9 +64,7 @@ jobs:
           SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${{ secrets.MYSQL_DATABASE }}?allowPublicKeyRetrieval=true&useSSL=false
           SPRING_DATASOURCE_USERNAME: root
           SPRING_DATASOURCE_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
-          SPRING_JPA_HIBERNATE_DDL_AUTO: update   # Add this if missing
         run: mvn test
-      
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -93,9 +89,12 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and Push Docker Image
+      - name: Build Docker Image
         run: |
           docker build -t ${{ secrets.DOCKER_USERNAME }}/weather-app:latest .
+
+      - name: Push to Docker Hub
+        run: |
           docker push ${{ secrets.DOCKER_USERNAME }}/weather-app:latest
 
   deploy:
@@ -113,5 +112,4 @@ jobs:
             docker stop weather-app || true
             docker rm weather-app || true
             docker pull ${{ secrets.DOCKER_USERNAME }}/weather-app:latest
-            docker network ls | grep "weather-network" || docker network create weather-network
             docker run -d -p 6161:6161 --name weather-app --network=weather-network ${{ secrets.DOCKER_USERNAME }}/weather-app:latest
