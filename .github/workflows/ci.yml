@@ -123,22 +123,32 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            echo "🔄 Stopping existing container..."
+            echo "🔄 Stopping existing containers..."
             docker stop weather-app || true
             docker rm weather-app || true
-            
-            echo "📥 Pulling latest image..."
+            docker stop weather-mysql || true
+            docker rm weather-mysql || true
+
+            echo "📥 Pulling latest images..."
             docker pull ${{ secrets.DOCKER_USERNAME }}/weather-app:latest
-            
-            echo "🔍 Checking if 'weather-network' exists..."
-            if ! docker network inspect weather-network >/dev/null 2>&1; then
-              echo "⚠️ 'weather-network' not found. Creating it now..."
-              docker network create weather-network
-            else
-              echo "✅ 'weather-network' already exists."
-            fi
-            
-            echo "🚀 Starting new container..."
-            docker run -d -p 6161:6161 --name weather-app --network=weather-network ${{ secrets.DOCKER_USERNAME }}/weather-app:latest
-            
-            echo "✅ Deployment successful!"
+
+            echo "🔧 Creating network..."
+            docker network create weather-network || true
+
+            echo "📦 Starting MySQL..."
+            docker run -d --name weather-mysql \
+              --network=weather-network \
+              -e MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
+              -e MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }} \
+              -p 3306:3306 \
+              mysql:8
+
+            echo "🚀 Starting Application..."
+            docker run -d --name weather-app \
+              --network=weather-network \
+              -p 6161:6161 \
+              -e SPRING_DATASOURCE_URL=jdbc:mysql://weather-mysql:3306/${{ secrets.MYSQL_DATABASE }}?allowPublicKeyRetrieval=true&useSSL=false \
+              -e SPRING_DATASOURCE_USERNAME=root \
+              -e SPRING_DATASOURCE_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
+              ${{ secrets.DOCKER_USERNAME }}/weather-app:latest
+  
