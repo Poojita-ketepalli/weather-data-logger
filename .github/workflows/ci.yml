@@ -68,6 +68,12 @@ jobs:
           SPRING_DATASOURCE_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
         run: mvn test
 
+      - name: Upload Artifact (JAR file)
+        uses: actions/upload-artifact@v4
+        with:
+          name: weather-app-artifact  # ✅ Ensure this matches in restore step
+          path: target/
+
   docker-build-push:
     needs: build-and-test
     runs-on: ubuntu-latest
@@ -79,11 +85,12 @@ jobs:
       - name: Restore Built Artifact
         uses: actions/download-artifact@v4
         with:
-          name: weatherdata-0.0.1-SNAPSHOT.jar  # Must match the artifact name from the `build-and-test` job
-          path: target  # 🔹 Ensures the JAR file is placed in `target/`
+          name: weather-app-artifact  # ✅ Must match upload step
+          path: target  # ✅ Ensures all JAR files are placed in `target/`
 
-      - name: Debug List target directory
-        run: ls -l target  # 🔹 Verify the JAR file is present before building Docker image
+      - name: Verify JAR File Exists
+        run: |
+          ls -lh target/*.jar || echo "❌ No JAR file found!"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -98,9 +105,10 @@ jobs:
         run: |
           docker build -t ${{ secrets.DOCKER_USERNAME }}/weather-app:latest .
 
-      - name: Push Docker Image
+      - name: Push to Docker Hub
         run: |
           docker push ${{ secrets.DOCKER_USERNAME }}/weather-app:latest
+  
   
 
   deploy:
