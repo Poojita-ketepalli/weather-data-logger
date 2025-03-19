@@ -25,3 +25,20 @@ Steps to set up docker on cloud:
 - Install Docker Compose : sudo apt install docker-compose -y
 - Verify Docker Compose : docker-compose --version
 
+Deploy step in github actions:
+- ssh-keygen -t rsa -b 4096
+- cat id_rsa.pub - copy the output
+- ssh -i ~/.ssh/file-from-ec2.pem user@public-ipv4
+- echo "public key" >> ~/.ssh/authorized_keys
+- exit
+- ssh -i ~/.ssh/id_rsa user@public-ipv4 - verify weather we are able to successfully login to the server or not
+- exit
+- chmod 700 ~/.ssh
+- chmod 600 ~/.ssh/id_rsa
+- chmod 644 ~/.ssh/id_rsa.pub
+- ssh -i ~/.ssh/id_rsa ubuntu@43.204.140.179 - verify again
+- chmod 700 ~/.ssh
+- chmod 600 ~/.ssh/authorized_keys
+- exit
+- cat id_rsa - copy that save in the github secret variables
+
