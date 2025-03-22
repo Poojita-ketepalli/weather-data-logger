@@ -41,12 +41,12 @@ jobs:
       - name: Wait for MySQL to be Ready
         run: |
           echo "Waiting for MySQL to be ready..."
-          for i in {1..90}; do
+          for i in {1..60}; do
             if mysqladmin ping -h127.0.0.1 -uroot -p"${{ secrets.MYSQL_PASSWORD }}" --silent; then
               echo "✅ MySQL is up and running!"
               break
             fi
-            echo "⏳ Waiting for MySQL... ($i/90)"
+            echo "⏳ Waiting for MySQL... ($i/60)"
             sleep 2
           done
 
@@ -63,7 +63,7 @@ jobs:
 
       - name: Run Tests
         env:
-          SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/${{ secrets.MYSQL_DATABASE_TEST }}?allowPublicKeyRetrieval=true&useSSL=false
+          SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/${{ secrets.MYSQL_DATABASE }}?allowPublicKeyRetrieval=true&useSSL=false
           SPRING_DATASOURCE_USERNAME: root
           SPRING_DATASOURCE_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
         run: mvn test
