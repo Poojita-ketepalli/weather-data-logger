@@ -54,23 +54,6 @@ jobs:
         run: |
           mysql -h 127.0.0.1 -uroot -p"${{ secrets.MYSQL_PASSWORD }}" -e "SHOW DATABASES;"
 
-      - name: Enable Testcontainers in CI
-        run: |
-          echo "🔧 Enabling Testcontainers..."
-          sudo service docker start || echo "⚠️ Docker service already running"
-          echo "✅ Docker is running!"
-          
-      - name: Run Tests
-        env:
-          SPRING_DATASOURCE_URL: jdbc:tc:mysql:8.0://localhost/weatherdb
-          SPRING_DATASOURCE_USERNAME: root
-          SPRING_DATASOURCE_PASSWORD: Puji2002@
-          TESTCONTAINERS_RYUK_DISABLED: true  # ✅ Fixes Ryuk hanging issue in CI
-          TESTCONTAINERS_CHECKS_DISABLE: true  # ✅ Helps in environments with limited access
-        run: mvn test -Dtestcontainers.reuse.enable=true
-
-
-
       - name: Build with Maven
         env:
           SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/${{ secrets.MYSQL_DATABASE }}?allowPublicKeyRetrieval=true&useSSL=false
