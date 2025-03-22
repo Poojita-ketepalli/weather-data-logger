@@ -1,8 +1,9 @@
-package com.weatherdata.service;
+package com.weatherdata.junittests.service;
 
 import com.weatherdata.dto.WeatherApiResponse;
 import com.weatherdata.entity.WeatherData;
 import com.weatherdata.repository.WeatherDataRepository;
+import com.weatherdata.service.WeatherDataService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
