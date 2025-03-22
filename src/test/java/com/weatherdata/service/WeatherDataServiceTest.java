@@ -1,4 +1,4 @@
-package com.weatherdata.junittests.service;
+package com.weatherdata.service;
 
 import com.weatherdata.dto.WeatherApiResponse;
 import com.weatherdata.entity.WeatherData;

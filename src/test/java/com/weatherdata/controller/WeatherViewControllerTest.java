@@ -1,6 +1,5 @@
-package com.weatherdata.junittests.controller;
+package com.weatherdata.controller;
 
-import com.weatherdata.controller.WeatherViewController;
 import com.weatherdata.entity.WeatherData;
 import com.weatherdata.repository.WeatherDataRepository;
 import org.junit.jupiter.api.Assertions;
