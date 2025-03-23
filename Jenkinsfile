@@ -4,15 +4,14 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
+                git branch: 'main', credentialsId: 'github-credentials', url: 'https://github.com/Poojita-ketepalli/weather-data-logger.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
                 script {
-                    checkout([
-                        $class: 'GitSCM',
-                        branches: [[name: '*/main']],
-                        userRemoteConfigs: [[
-                            url: 'https://github.com/Poojita-ketepalli/weather-data-logger.git',
-                            credentialsId: 'github-credentials'
-                        ]]
-                    ])
+                    sh 'mvn clean package'
                 }
             }
         }
