@@ -53,5 +53,15 @@ pipeline {
                 }
             }
         }
+
+         stage('Run Tests') {   // ✅ New test stage added
+                    steps {
+                        script {
+                            withCredentials([usernamePassword(credentialsId: 'mysql-credentials', usernameVariable: 'DB_USER', passwordVariable: 'DB_PASS')]) {
+                                sh "mvn test -Dspring.datasource.url=jdbc:mysql://${DB_HOST}:3306/weather_db -Dspring.datasource.username=${DB_USER} -Dspring.datasource.password=${DB_PASS}"
+                            }
+                        }
+                    }
+                }
     }
 }
