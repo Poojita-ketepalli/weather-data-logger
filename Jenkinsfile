@@ -13,20 +13,17 @@ pipeline {
             }
         }
 
-        stage('Start MySQL') {
-            steps {
-                script {
-                    echo '🚀 Starting MySQL...'
-
-                    // Ensure MySQL container is started
-                    sh '''
-                    if ! docker ps | grep -q mysql; then
-                        docker run --name mysql -e MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} -e MYSQL_DATABASE=${MYSQL_DATABASE} -p 3306:3306 -d mysql:8
-                        sleep 10
-                    fi
-                    '''
-                }
-            }
-        }
-
         
+
+
+
+
+
+
+
+
+
+
+
+    }
+}
