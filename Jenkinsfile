@@ -63,5 +63,12 @@ pipeline {
                         }
                     }
                 }
+
+         stage('Archive Build Artifact') {  // ✅ New Stage to Store JAR
+                     steps {
+                         archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                         echo "✅ JAR file archived successfully"
+                     }
+                 }
     }
 }
