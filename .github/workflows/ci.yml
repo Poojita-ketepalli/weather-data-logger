@@ -21,7 +21,7 @@ jobs:
           MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
         ports:
           - 3306:3306
-        
+
 
     steps:
       - name: Checkout code
@@ -109,47 +109,4 @@ jobs:
         run: |
           docker push ${{ secrets.DOCKER_USERNAME }}/weather-app:latest
 
-  deploy:
-    needs: docker-build-push
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Deploy to Server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script: |
-            echo "🔄 Stopping existing containers..."
-            docker stop weather-app || true
-            docker rm weather-app || true
-            docker stop weather-mysql || true
-            docker rm weather-mysql || true
-
-            echo "📥 Pulling latest images..."
-            docker pull ${{ secrets.DOCKER_USERNAME }}/weather-app:latest
-
-            echo "🔧 Creating network..."
-            docker network create weather-network || true
-
-            echo "📦 Starting MySQL..."
-            docker run -d --name weather-mysql \
-              --network=weather-network \
-              -e MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
-              -e MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }} \
-              -p 3306:3306 \
-              mysql:8
-
-            sleep 20  # Give MySQL time to start
-
-            echo "🚀 Starting Application..."
-            docker run -d --name weather-app \
-              --network=weather-network \
-              -p 6161:6161 \
-              -e SPRING_DATASOURCE_URL="jdbc:mysql://weather-mysql:3306/${{ secrets.MYSQL_DATABASE }}?allowPublicKeyRetrieval=true&useSSL=false" \
-              -e SPRING_DATASOURCE_USERNAME=root \
-              -e SPRING_DATASOURCE_PASSWORD="${{ secrets.MYSQL_PASSWORD }}" \
-              ${{ secrets.DOCKER_USERNAME }}/weather-app:latest
-
-            echo "✅ Deployment Successful!"
+  
