@@ -1,17 +1,55 @@
 pipeline {
     agent any
 
+    environment {
+        DB_HOST = "mysql-container"  // ✅ Setting DB_HOST here
+    }
+
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'main', credentialsId: 'github-credentials', url: 'https://github.com/Poojita-ketepalli/weather-data-logger.git'
+                script {
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: '*/main']],
+                        userRemoteConfigs: [[
+                            url: 'https://github.com/Poojita-ketepalli/weather-data-logger.git',
+                            credentialsId: 'github-credentials'
+                        ]]
+                    ])
+                }
+            }
+        }
+
+        stage('Retrieve MySQL Credentials') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'mysql-credentials', usernameVariable: 'DB_USER', passwordVariable: 'DB_PASS')]) {
+                        echo "✅ Retrieved MySQL credentials"
+                    }
+                }
+            }
+        }
+
+        stage('Wait for MySQL') {
+            steps {
+                script {
+                    def mysqlReady = sh(script: "until mysqladmin ping -h ${DB_HOST} --silent; do sleep 5; done", returnStatus: true)
+                    if (mysqlReady != 0) {
+                        error("❌ MySQL is not ready!")
+                    } else {
+                        echo "✅ MySQL is ready!"
+                    }
+                }
             }
         }
 
         stage('Build') {
             steps {
                 script {
-                    sh 'mvn clean package'
+                    withCredentials([usernamePassword(credentialsId: 'mysql-credentials', usernameVariable: 'DB_USER', passwordVariable: 'DB_PASS')]) {
+                        sh "mvn clean package -Dspring.datasource.url=jdbc:mysql://${DB_HOST}:3306/weather_db -Dspring.datasource.username=${DB_USER} -Dspring.datasource.password=${DB_PASS}"
+                    }
                 }
             }
         }
