@@ -70,5 +70,20 @@ pipeline {
                          echo "✅ JAR file archived successfully"
                      }
                  }
+
+         stage('Deploy Locally') {  // ✅ New Deployment Stage
+                     steps {
+                         script {
+                             sh '''
+                                 echo "🚀 Stopping old application..."
+                                 pkill -f 'java -jar' || true
+
+                                 echo "🚀 Deploying new version..."
+                                 nohup java -jar target/*.jar --spring.datasource.url=jdbc:mysql://${DB_HOST}:3306/weather_db --spring.datasource.username=$DB_USER --spring.datasource.password=$DB_PASS > app.log 2>&1 &
+                                 echo "✅ Application started!"
+                             '''
+                         }
+                     }
+                 }
     }
 }
