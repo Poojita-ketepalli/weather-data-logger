@@ -76,15 +76,20 @@ pipeline {
                  script {
                      sh '''
                          echo "🚀 Stopping old application..."
-                         pkill -f 'target/weather-data-logger*.jar' || true
+                         pkill -f 'weatherdata-0.0.1-SNAPSHOT.jar' || true
 
                          echo "🚀 Deploying new version..."
-                         nohup java -jar target/weather-data-logger*.jar --spring.datasource.url=jdbc:mysql://mysql-container:3306/weather_db --spring.datasource.username=$DB_USER --spring.datasource.password=$DB_PASS > app.log 2>&1 &
-                         echo "✅ Application started!"
+                         nohup java -jar /var/jenkins_home/workspace/weather-application-ci-cd/target/weatherdata-0.0.1-SNAPSHOT.jar --spring.datasource.url=jdbc:mysql://mysql-container:3306/weather_db --spring.datasource.username=$DB_USER --spring.datasource.password=$DB_PASS > app.log 2>&1 &
+
+                         sleep 5  # Give some time for the app to start
+
+                         echo "✅ Deployment complete!"
+                         ps aux | grep java  # Verify if the process is running
                      '''
                  }
              }
          }
+
 
     }
 }
