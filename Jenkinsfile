@@ -93,25 +93,40 @@ pipeline {
              }
          }
          stage('Deploy to EC2') {
-                     steps {
-                         script {
-                             def jarFile = "target/weatherdata-0.0.1-SNAPSHOT.jar"
-                             def remotePath = "/home/ubuntu/app/weatherdata.jar"
+             steps {
+                 script {
+                     def jarFile = "target/weatherdata-0.0.1-SNAPSHOT.jar"
+                     def remotePath = "/home/ubuntu/app/weatherdata.jar"
+                     def sshKey = "/var/jenkins_home/.ssh/id_rsa"
 
-                             // Copy JAR file to EC2 using SCP
-                             sh "scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${jarFile} ${EC2_USER}@${EC2_IP}:${remotePath}"
+                     // ✅ Copy JAR file to EC2 using SCP
+                     sh """
+                         scp -o StrictHostKeyChecking=no -i ${sshKey} ${jarFile} ${EC2_USER}@${EC2_IP}:${remotePath}
+                     """
 
-                             // SSH into EC2 and restart application
-                             sh """
-                                 ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${EC2_USER}@${EC2_IP} << EOF
-                                 sudo pkill -f 'java -jar' || true  # Stop any running instance
-                                 nohup java -jar ${remotePath} --server.port=6161 --spring.datasource.url=jdbc:mysql://<DB_HOST>:3306/weather_db --spring.datasource.username=weather_user --spring.datasource.password=weather_pass > app.log 2>&1 &
-                                 EOF
-                             """
-                         }
-                         }
-                         }
+                     // ✅ SSH into EC2 and restart application safely
+                     sh """
+                         ssh -o StrictHostKeyChecking=no -i ${sshKey} ${EC2_USER}@${EC2_IP} << 'EOF'
+                         echo "Stopping existing application..."
 
+                         # Find and kill the process safely
+                         PID=\$(pgrep -f '${remotePath}')
+                         if [ -n "\$PID" ]; then
+                             echo "Killing process \$PID"
+                             kill -9 \$PID
+                         fi
 
-    }
+                         echo "Starting new application..."
+                         nohup java -jar ${remotePath} --server.port=6161 \\
+                             --spring.datasource.url=jdbc:mysql://\${DB_HOST}:3306/weather_db \\
+                             --spring.datasource.username=\${DB_USER} \\
+                             --spring.datasource.password=\${DB_PASS} > /home/ubuntu/app.log 2>&1 &
+
+                         echo "Application deployed successfully!"
+                         EOF
+                     """
+                 }
+             }
+         }
+         }
 }
