@@ -104,23 +104,29 @@ pipeline {
                          scp -o StrictHostKeyChecking=no -i ${sshKey} ${jarFile} ${EC2_USER}@${EC2_IP}:${remotePath}
                      """
 
-                     // ✅ SSH into EC2 and restart application
+                     // ✅ SSH into EC2 and restart application safely
                      sh """
-                         ssh -o StrictHostKeyChecking=no -i ${sshKey} ${EC2_USER}@${EC2_IP} " \
-                             echo 'Stopping existing application...'; \
-                             PID=\\$(pgrep -f '${remotePath}'); \
-                             if [ -n \"\\$PID\" ]; then echo 'Killing process \\$PID'; kill -9 \\$PID; fi; \
-                             echo 'Starting new application...'; \
-                             nohup java -jar ${remotePath} --server.port=6161 \
-                                 --spring.datasource.url=jdbc:mysql://\${DB_HOST}:3306/weather_db \
-                                 --spring.datasource.username=\${DB_USER} \
-                                 --spring.datasource.password=\${DB_PASS} > /home/ubuntu/app.log 2>&1 & \
-                             echo 'Application deployed successfully!' \
-                         "
+                         ssh -o StrictHostKeyChecking=no -i ${sshKey} ${EC2_USER}@${EC2_IP} << 'EOF'
+                         echo "Stopping existing application..."
+
+                         # Find and kill the process safely
+                         PID=\$(pgrep -f '${remotePath}')
+                         if [ -n "\$PID" ]; then
+                             echo "Killing process \$PID"
+                             kill -9 \$PID
+                         fi
+
+                         echo "Starting new application..."
+                         nohup java -jar ${remotePath} --server.port=6161 \\
+                             --spring.datasource.url=jdbc:mysql://\${DB_HOST}:3306/weather_db \\
+                             --spring.datasource.username=\${DB_USER} \\
+                             --spring.datasource.password=\${DB_PASS} > /home/ubuntu/app.log 2>&1 &
+
+                         echo "Application deployed successfully!"
+                         
                      """
                  }
              }
          }
-
          }
 }
