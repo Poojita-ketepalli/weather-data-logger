@@ -3,6 +3,9 @@ pipeline {
 
     environment {
         DB_HOST = "mysql-container"  // ✅ Setting DB_HOST here
+        EC2_USER = 'ubuntu'                      // Change if using another user (e.g., ec2-user for Amazon Linux)
+        EC2_IP = '13.235.69.199'               // Replace with your EC2 Public IP
+        SSH_CREDENTIALS_ID = 'jenkins-ssh-key'   // The Jenkins credentials ID for SSH
     }
 
     stages {
