@@ -42,3 +42,7 @@ Deploy step in github actions:
 - exit
 - cat id_rsa - copy that save in the github secret variables
 
+
+output of jenkins:
+![image](https://github.com/user-attachments/assets/a51ff708-6155-44f7-9644-5df8fd1ed367)
+
