@@ -3,8 +3,8 @@ pipeline {
 
     environment {
         DB_HOST = "mysql-container"  // ✅ Setting DB_HOST here
-        EC2_USER = 'ubuntu'                      // Change if using another user (e.g., ec2-user for Amazon Linux)
-        EC2_IP = '13.235.69.199'               // Replace with your EC2 Public IP
+        EC2_USER = 'ubuntu'
+        EC2_IP = '13.235.69.199'
         SSH_CREDENTIALS_ID = 'jenkins-ssh-key'   // The Jenkins credentials ID for SSH
     }
 
@@ -92,6 +92,23 @@ pipeline {
                  }
              }
          }
+         stage('Deploy to EC2') {
+                     steps {
+                         script {
+                             def jarFile = "target/weatherdata-0.0.1-SNAPSHOT.jar"
+                             def remotePath = "/home/ubuntu/app/weatherdata.jar"
+
+                             // Copy JAR file to EC2 using SCP
+                             sh "scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${jarFile} ${EC2_USER}@${EC2_IP}:${remotePath}"
+
+                             // SSH into EC2 and restart application
+                             sh """
+                                 ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${EC2_USER}@${EC2_IP} << EOF
+                                 sudo pkill -f 'java -jar' || true  # Stop any running instance
+                                 nohup java -jar ${remotePath} --server.port=6161 --spring.datasource.url=jdbc:mysql://<DB_HOST>:3306/weather_db --spring.datasource.username=weather_user --spring.datasource.password=weather_pass > app.log 2>&1 &
+                                 EOF
+                             """
+                         }
 
 
     }
