@@ -123,7 +123,7 @@ pipeline {
                              --spring.datasource.password=\${DB_PASS} > /home/ubuntu/app.log 2>&1 &
 
                          echo "Application deployed successfully!"
-                         
+
                      """
                  }
              }

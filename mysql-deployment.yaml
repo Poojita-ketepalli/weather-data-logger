@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: weather-mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: weather-mysql
+  template:
+    metadata:
+      labels:
+        app: weather-mysql
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: "Puji2002@"
+            - name: MYSQL_DATABASE
+              value: "weather_db"
+          ports:
+            - containerPort: 3306
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: mysql-storage
+      volumes:
+              - name: mysql-storage
+                persistentVolumeClaim:
+                  claimName: mysql-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: weather-mysql
+spec:
+  selector:
+    app: weather-mysql
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306

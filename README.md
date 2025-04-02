@@ -46,3 +46,38 @@ Deploy step in github actions:
 output of jenkins:
 ![image](https://github.com/user-attachments/assets/a51ff708-6155-44f7-9644-5df8fd1ed367)
 
+commands to setup minikube:
+- curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+- sudo install minikube-linux-amd64 /usr/local/bin/minikube
+- curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+- sudo install kubectl /usr/local/bin/
+- sudo apt update
+- sudo apt install docker.io -y
+- sudo usermod -aG docker $USER
+- wsl --shutdown (restarting the terminal)
+- minikube start --driver=docker
+- minikube status
+- kubectl get nodes
+- minikube dashboard - open in browser
+
+Written yaml files for mysql-deployment,weather-app-deployment
+- kubectl apply -f mysql-deployment.yaml
+- kubectl apply -f weather-app-deployment.yaml
+- kubectl get pods
+- kubectl get svc
+- kubectl describe pod -l app=weather-app
+- kubectl logs -l app=weather-app
+- check environment variables - kubectl exec -it $(kubectl get pod -l app=weather-app -o jsonpath="{.items[0].metadata.name}") -- printenv | grep SPRING
+- external url: minikube service weather-app --url
+- to restart the application - kubectl rollout restart deployment weather-app
+- docker build -t dockerhub-username/weather-app .
+- docker push dockerhub-username/weather-app
+- kubectl get all
+- kubectl set image deployment/weather-app weather-app=poojitak/weather-app:latest
+- kubectl rollout status deployment weather-app
+
+Using helm package for deployment:
+- curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+- helm version
+- helm create weather-app
+
